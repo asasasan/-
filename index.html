@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Geometry Dash Custom Stage</title>
+<style>
+body { margin: 0; background: #111; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+canvas { display: block; border: 2px solid #fff; background: linear-gradient(to top, #222, #111); }
+</style>
+</head>
+<body>
+<canvas id="gameCanvas" width="800" height="400"></canvas>
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+
+let player = { x: 50, y: 300, width: 30, height: 30, dy: 0, gravity: 0.8, jumpPower: -15, color: 'lime' };
+let frame = 0, gameSpeed = 4, score = 0;
+
+
+// 장애물 배열 확장
+let stageObstacles = [
+{x:500,y:360,width:50,height:40},{x:650,y:340,width:50,height:50},{x:850,y:320,width:50,height:60},
+{x:1050,y:300,width:50,height:40},{x:1250,y:360,width:50,height:50},{x:1400,y:320,width:50,height:60},{x:1600,y:280,width:50,height:40},
+// 새 장애물 추가
+{x:1750,y:350,width:50,height:50},{x:1900,y:300,width:50,height:60},{x:2050,y:280,width:50,height:40},
+{x:2200,y:360,width:50,height:50},{x:2350,y:320,width:50,height:60},{x:2500,y:300,width:50,height:40}
+];
+
+
+function drawBackground(){
+ctx.fillStyle = '#111';
+ctx.fillRect(0,0,canvas.width,canvas.height);
+}
+
+
+function drawPlayer() {
+ctx.fillStyle = player.color;
+ctx.fillRect(player.x, player.y, player.width, player.height);
+ctx.fillStyle = 'rgba(0,0,0,0.3)';
+ctx.fillRect(player.x, canvas.height-20, player.width, 5);
+}
+
+
+function drawTriangleObstacle(obs) {
+ctx.fillStyle = 'orange';
+ctx.beginPath();
+ctx.moveTo(obs.x + obs.width / 2, obs.y);
+ctx.lineTo(obs.x, obs.y + obs.height);
+ctx.lineTo(obs.x + obs.width, obs.y + obs.height);
+ctx.closePath();
+ctx.fill();
+if(obs.y + obs.height < 400 - 20) {
+ctx.fillRect(obs.x, obs.y + obs.height, obs.width, 400 - 20 - (obs.y + obs.height));
+}
+}
+
+
+function update() {
+frame++;
+ctx.clearRect(0,0,canvas.width,canvas.height);
+
+
+drawBackground();
+
+
+player.dy += player.gravity;
+player.y += player.dy;
+if(player.y + player.height > canvas.height - 20) {
+player.y = canvas.height - 20 - player.height;
+player.dy = 0;
+}
+
+
+drawPlayer();
+
+
+stageObstacles.forEach(obs => {
+obs.x -= gameSpeed;
+drawTriangleObstacle(obs);
+
+
+if(player.x < obs.x + obs.width && player.x + player.width > obs.x && player.y < obs.y + obs.height && player.y + player.height > obs.y) {
+alert('Game Over! Score: ' + score);
+const resetPositions = [500,650,850,1050,1250,1400,1600,1750,1900,2050,2200,2350,2500];
+stageObstacles.forEach((o, i) => o.x = resetPositions[i]);
+player.y = 300;
+frame = 0;
+score = 0;
+gameSpeed = 4;
+}
+});
+
+
+score++;
+ctx.fillStyle = 'white';
+ctx.font = '24px Arial';
+ctx.fillText('Score: ' + score, 10, 30);
+
+
+if(frame % 600 === 0) gameSpeed += 0.2;
+
+
+requestAnimationFrame(update);
+}
+
+
+document.addEventListener('keydown', e => {
+if(e.code === 'Space' || e.code === 'ArrowUp') {
+if(player.y + player.height >= canvas.height - 20) player.dy = player.jumpPower;
+}
+});
+
+
+update();
+</script>
+</body>
+</html>
